@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px 0 0 0;
+            padding: 30px 0 0 0;
+            box-sizing: border-box;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        .table th {
+            background-color: #f2f2f2;
+            text-align: left;
+        }
+
+        .totals {
+            width: 200px;
+            font-size: 11pt;
+            float: right;
+            margin-top: 20px;
+        }
+
+        .totals .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .validity {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% products.forEach(product=> { %>
+                    <tr>
+                        <td>
+                            <%= product.name %>
+                        </td>
+                        <td style="color: lightblue">
+                            <%= product.qty %>
+                        </td>
+                        <td>
+                            <%= product.rate %>
+                        </td>
+                        <td>INR <%= product.rate * product.qty %>
+                        </td>
+                    </tr>
+                    <% }); %>
+            </tbody>
+        </table>
+        <div class="totals">
+            <div class="total-row">
+                <span style="font-weight: bold;">Total:</span>
+                <span>INR <%= totalAmount %></span>
+            </div>
+            <div class="total-row" style="font-size: 9pt !important; border-top: 2px solid white;">
+                <span>GST:</span>
+                <span>
+                    <%= gstPer %>%
+                </span>
+            </div>
+            <div class="total-row"
+                style="border-top: 1px solid black;border-bottom: 1px solid black;padding: 10px 0 10px 0;margin-top: 20px;">
+                <span style="font-weight: bold;">Grand Total:</span>
+                <span>INR <%= grandTotal %></span>
+            </div>
+        </div>
+        <div class="validity">
+            <p>Valid until: <b>
+                    <%= validity %>
+                </b></p>
+        </div>
+    </div>
+</body>
+
+</html>
