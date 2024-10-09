@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main  # Change this to your main branch or the branch you want to deploy from
+  pull_request:
+      branches:
+        - main
 
 jobs:
   build:
@@ -16,13 +19,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'  # Adjust according to your app's requirements
+          node-version: '20.X'  # Adjust according to your app's requirements
 
       - name: Install dependencies
-        run: npm install
+        run: npm i
 
       - name: Build the app (optional)
-        run: npm run build  # Adjust if you have a build command
+        run: npm run start  # Adjust if you have a build command
 
       - name: Deploy to AWS EC2
         env:
