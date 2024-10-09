@@ -1,4 +1,3 @@
-require('dotenv').config();
 
 const connectToMongo = require('./database/db');
 const express = require('express');
@@ -6,6 +5,7 @@ const cors = require('cors');
 const userRoutes = require('./routes/userRoute');
 const productRoutes = require('./routes/productRoute');
 const quotationRoutes = require('./routes/quotationRoute');
+require('dotenv').config();
 
 const app = express();
 
