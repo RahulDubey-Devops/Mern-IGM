@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 dotenv.config(); // Load environment variables
 
 const connectToMongo = async () => {
-    const uri = process.env.MONGODB_URI; // Use the environment variable
+    const uri = process.env.MONGODB_URL; // Use the environment variable
     if (!uri) {
         console.error('MongoDB URI is undefined');
         return;
