@@ -1,13 +1,11 @@
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-
-dotenv.config(); // Load environment variables
+require('dotenv').config();  // Ensure dotenv is required here as well
 
 const connectToMongo = async () => {
-    const uri = process.env.MONGODB_URL; // Use the environment variable
+    const uri = process.env.MONGODB_URI; // Ensure this retrieves the URI
     if (!uri) {
         console.error('MongoDB URI is undefined');
-        return;
+        return; // Early return if URI is undefined
     }
     try {
         await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
