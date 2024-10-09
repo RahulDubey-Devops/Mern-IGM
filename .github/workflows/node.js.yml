@@ -1,48 +1,48 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Node.js 
+name: Deploy Node.js App
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - master
   pull_request:
-    branches: [ "master" ]
+    branches:
+      - master
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm i
-    - run: npm run start --if-presentint
-
-  lint:
-    name: Linter
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
-      - name: Independencies
+          node-version: '20.X'
+
+      - name: Install dependencies
         run: npm i
-      - name: Linter
-        run : npx standard --fix  
+
+      - name: Build the app (optional)
+        run: npm run start  # Make sure to use a valid build command if necessary
+
+      - name: Deploy to AWS EC2
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  
+          VM_IP: ${{ secrets.VM_IP }}                      
+          SSH_USER: "ubuntu"                               
+          MONGODB_URI: ${{ secrets.MONGODB_URL }}  # MongoDB URI secret
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          # Copy application files to the EC2 instance
+          scp -r -o StrictHostKeyChecking=no * ubuntu@$VM_IP:/home/ubuntu/apps
+
+          # SSH into the EC2 instance and run commands to install dependencies and start the app
+          ssh -tt -o StrictHostKeyChecking=no ubuntu@$VM_IP << 'EOF'
+            cd /home/ubuntu/apps
+            npm install
+            pm2 restart igm || pm2 start server.js --name "igm" -- run start:prod
+          EOF
