@@ -38,7 +38,7 @@ jobs:
           chmod 600 private_key.pem
 
           # Copy application files to the EC2 instance
-          scp -o StrictHostKeyChecking=no -i private_key.pem -r ./* ubuntu@$VM_IP:/home/ubuntu/apps  # Copy all files
+          scp -o StrictHostKeyChecking=no -i private_key.pem -r * ubuntu@$VM_IP:/home/ubuntu/apps  # Copy all files
 
           # SSH into the EC2 instance and run commands to install dependencies and start the app
           ssh -tt -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$VM_IP << 'EOF'
