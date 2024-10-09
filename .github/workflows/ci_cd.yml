@@ -1,82 +1,45 @@
-name: Integration
+name: Deploy Node.js MVC App
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main  # Change this to your main branch or the branch you want to deploy from
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm install
-    - run: npm run build
-
-  unit-test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm install
-    - run: npm run test
-  lint:
-    name: Linter
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
-      - name: Independencies
-        run: npm i
-      - name: Linter
-        run : npx standard --fix
-         
-  deploy:
-    runs-on: ubuntu-latest
-    needs: ['build','lint'] # Wait for the build job to finish
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+          node-version: '16'  # Adjust according to your app's requirements
 
-    - name: Setup SSH Agent
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Install dependencies
+        run: npm install
 
-    - name: Transfer files to VM
-      run: |
-        scp -r -o StrictHostKeyChecking=no * ubuntu@${{ secrets.VM_IP }}:/home/ubuntu/apps
+      - name: Build the app (optional)
+        run: npm run build  # Adjust if you have a build command
 
-    - name: Connect to VM and deploy
-      run: |
-        ssh -tt -o StrictHostKeyChecking=no ubuntu@${{ secrets.VM_IP }} << 'EOF'
-          cd /home/ubuntu/apps
-          npm install
-          npm run build
-           pm2 restart igm || pm2 start server.js --name "igm" -- run start:prod
-        EOF
+      - name: Deploy to AWS EC2
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # Store your SSH private key in GitHub secrets
+          VM_IP: ${{ secrets.VM_IP }}                      # Store your EC2 public IP in GitHub secrets
+          SSH_USER: "ubuntu"                               # Change if using a different user
+        run: |
+          # Write the private key to a file
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          # Copy application files to the EC2 instance
+          scp -o StrictHostKeyChecking=no -i private_key.pem -r ./ ubuntu@$VM_IP:/home/ubuntu/igm  # Adjust path as necessary
+
+          # SSH into the EC2 instance and run commands to install dependencies and start the app
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$VM_IP << 'EOF'
+            cd /home/ubuntu/igm
+            npm install
+            pm2 restart igm || pm2 start server.js --name "igm" -- run start:prod  # Adjust command as necessary
+          EOF
