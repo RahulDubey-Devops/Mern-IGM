@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const connectToMongo = require('./database/db');
 const express = require('express');
 const cors = require('cors');
@@ -19,5 +21,5 @@ app.use('/api/quotations', quotationRoutes);
 
 connectToMongo();
 app.listen(process.env.PORT, () => {
-    console.log(`Example app listening at http://65.2.30.244:${process.env.PORT}`)
+    console.log(`Example app listening at http://localhost:${process.env.PORT}`)
 })
