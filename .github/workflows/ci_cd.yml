@@ -1,0 +1,82 @@
+name: Integrations
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm install
+    - run: npm run build
+
+  unit-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm install
+    - run: npm run test
+  lint:
+    name: Linter
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Independencies
+        run: npm i
+      - name: Linter
+        run : npx standard --fix
+         
+  deploy:
+    runs-on: ubuntu-latest
+    needs: ['build','lint'] # Wait for the build job to finish
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup SSH Agent
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Transfer files to VM
+      run: |
+        scp -r -o StrictHostKeyChecking=no * ubuntu@${{ secrets.VM_IP }}:/home/ubuntu/apps
+
+    - name: Connect to VM and deploy
+      run: |
+        ssh -tt -o StrictHostKeyChecking=no ubuntu@${{ secrets.VM_IP }} << 'EOF'
+          cd /home/ubuntu/apps
+          npm install
+          npm run build
+          pm2 restart all || pm2 start npm --name "my-app" -- run start
+        EOF
