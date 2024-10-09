@@ -1,4 +1,4 @@
-name: Deploy Node.js MVC App
+name: Deploy Node.js App
 
 on:
   push:
@@ -35,11 +35,13 @@ jobs:
           chmod 600 private_key.pem
 
           # Copy application files to the EC2 instance
-          scp -o StrictHostKeyChecking=no -i private_key.pem -r ./ ubuntu@$VM_IP:/home/ubuntu/igm  # Adjust path as necessary
+          # scp -o StrictHostKeyChecking=no -i private_key.pem -r ./ ubuntu@$VM_IP:/home/ubuntu/apps  # Adjust path as necessary
+          scp -r -o StrictHostKeyChecking=no * ubuntu@${{ secrets.VM_IP }}:/home/ubuntu/app
 
           # SSH into the EC2 instance and run commands to install dependencies and start the app
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$VM_IP << 'EOF'
-            cd /home/ubuntu/igm
+          # ssh -tt -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$VM_IP << 'EOF'
+          ssh -tt -o StrictHostKeyChecking=no ubuntu@${{ secrets.VM_IP }} << 'EOF'
+            cd /home/ubuntu/apps
             npm install
             pm2 restart igm || pm2 start server.js --name "igm" -- run start:prod  # Adjust command as necessary
           EOF
