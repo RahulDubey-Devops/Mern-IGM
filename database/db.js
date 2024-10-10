@@ -3,7 +3,7 @@ require('dotenv').config();  // Ensure dotenv is required for environment variab
 
 const connectToMongo = async () => {
     // Try to load the MongoDB URI from environment variables first
-    const uri = process.env.MONGODB_URI || "mongodb://rahuldubey:rahuldubey1@localhost:27017/TestBuild";
+    const uri ="mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.2";
  
     if (!uri) {
         console.error('MongoDB URI is undefined');
