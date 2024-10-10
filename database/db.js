@@ -1,22 +1,16 @@
 const mongoose = require('mongoose');
-require('dotenv').config();  // Ensure dotenv is required for environment variables
+require('dotenv').config();  // Load environment variables
 
 const connectToMongo = async () => {
-    // Try to load the MongoDB URI from environment variables first
-    const uri ="mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.2";
- 
+    const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/TestBuild?directConnection=true&serverSelectionTimeoutMS=2000";
+    
     if (!uri) {
         console.error('MongoDB URI is undefined');
-        return; // Early return if URI is undefined
+        return;
     }
 
     try {
-        // Connect to MongoDB using the provided URI
-        await mongoose.connect(uri, {
-            // Recommended settings, these options are no longer needed in newer Mongoose versions
-            // useNewUrlParser: true, 
-            // useUnifiedTopology: true 
-        });
+        await mongoose.connect(uri); // Options no longer necessary for newer Mongoose versions
         console.log('MongoDB connected successfully');
     } catch (error) {
         console.error('Error connecting to MongoDB:', error);
@@ -24,4 +18,3 @@ const connectToMongo = async () => {
 };
 
 module.exports = connectToMongo;
-
